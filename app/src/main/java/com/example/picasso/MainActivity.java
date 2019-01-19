@@ -28,9 +28,14 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
+import java.util.ArrayList;
+
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+
 
 public class MainActivity extends AppCompatActivity {
-    private Button buttonPicasso, btLink, btPhoto, btVideo;
+    private Button buttonPicasso, btLink, btPhoto, btVideo, btnRX;
     private ImageView imageView;
     private static final String ACCESS_TOKEN = "xI7j8VloxgAAAAAAAAAAHk0kTDulVWjIkkiRsHN9QSe6QvGfbRsCh9RMGiSmnzd7";
     private static final String APP_KEY = "8ti87qvwglh8ja3";
@@ -49,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         buttonPicasso = findViewById(R.id.button4);
+        btnRX = findViewById(R.id.RX_button);
         imageView = findViewById(R.id.imageView2);
         textView = findViewById(R.id.textView);
         btLink = findViewById(R.id.buttonLink);
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         callbackManager = CallbackManager.Factory.create();
-        loginButton = (LoginButton) findViewById(R.id.loginButton);
+        loginButton = findViewById(R.id.loginButton);
         loginButton.setReadPermissions("email");
         shareDialog = new ShareDialog(this);
 
@@ -85,6 +91,42 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+
+        btnRX.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                RXhelper.getList().subscribe(new Observer<ArrayList>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(ArrayList value) {
+
+                        String names = "";
+                        for (int i = 0; i < value.size(); i++) {
+                            names += value.get(i) + "  ";
+                        }
+                        textView.setText(names);
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(MainActivity.this, "ОШИБКА РХ", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+            }
+        });
+
         btLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                         .setQuote("Tecт")
                         .setContentUrl(Uri.parse("https://www.youtube.com/watch?v=fEA00WDqCfs"))
                         .build();
-                if (shareDialog.canShow(ShareLinkContent.class)) {
+                if (ShareDialog.canShow(ShareLinkContent.class)) {
                     shareDialog.show(linkContent);
                 }
             }
@@ -147,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(MainActivity.this, "Картинка загрузилась", Toast.LENGTH_LONG).show();
+                        textView.setText("Картинка загружена!");
                     }
 
                     @Override
@@ -191,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 .setContentDescription("видео супер !")
                 .setVideo(shareVideo)
                 .build();
-        if (shareDialog.canShow(ShareVideoContent.class)) {
+        if (ShareDialog.canShow(ShareVideoContent.class)) {
             shareDialog.show(videocontent);
         }
     }
