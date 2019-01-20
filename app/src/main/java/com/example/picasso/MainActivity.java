@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -29,13 +30,19 @@ import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import java.util.ArrayList;
+import java.util.Observable;
 
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.reactivex.Observer;
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 
 
 public class MainActivity extends AppCompatActivity {
-    private Button buttonPicasso, btLink, btPhoto, btVideo, btnRX;
+    private static final String TAG = "LALALAL";
+    private Button btLink, btPhoto, btVideo, btnRX;
     private ImageView imageView;
     private static final String ACCESS_TOKEN = "xI7j8VloxgAAAAAAAAAAHk0kTDulVWjIkkiRsHN9QSe6QvGfbRsCh9RMGiSmnzd7";
     private static final String APP_KEY = "8ti87qvwglh8ja3";
@@ -46,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
     ShareDialog shareDialog;
     Target target;
     private int REQUEST_CODE=1000;
+    Observer<String> observer1;
+    Observer<ArrayList> observer2;
+    Observer<Integer> observer3;
+    Disposable disposable;
 
 
     @Override
@@ -53,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        buttonPicasso = findViewById(R.id.button4);
+        ButterKnife.bind(this);
+
         btnRX = findViewById(R.id.RX_button);
         imageView = findViewById(R.id.imageView2);
         textView = findViewById(R.id.textView);
@@ -66,6 +78,14 @@ public class MainActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         loginButton.setReadPermissions("email");
         shareDialog = new ShareDialog(this);
+
+
+        io.reactivex.Observable<Integer> observable = io.reactivex.Observable.just(1, 2, 3);
+        observable.subscribe(integer -> textView.setText(integer.toString()));
+
+
+
+
 
         target = new Target() {
             @Override
@@ -90,39 +110,68 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
+        observer1 = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+
+            @Override
+            public void onNext(String value) {
+
+                String names = "Это обсервер 1";
+                names += value;
+
+                textView.setText(names);
+
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+
+
+        observer2 = new Observer<ArrayList>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(ArrayList value) {
+                String names = "Это обсервер 2";
+                for (int i = 0; i < value.size(); i++) {
+                    names += value.get(i) + "";
+                }
+                textView.setText(names);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
 
 
         btnRX.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                RXhelper.getList().subscribe(new Observer<ArrayList>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
+                io.reactivex.Observable observable = RXhelper.getList2();
+                observable.subscribe(observer2);
 
-                    }
-
-                    @Override
-                    public void onNext(ArrayList value) {
-
-                        String names = "";
-                        for (int i = 0; i < value.size(); i++) {
-                            names += value.get(i) + "  ";
-                        }
-                        textView.setText(names);
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(MainActivity.this, "ОШИБКА РХ", Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
 
             }
         });
@@ -182,31 +231,31 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        buttonPicasso.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Callback callBack = new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        Toast.makeText(MainActivity.this, "Картинка загрузилась", Toast.LENGTH_LONG).show();
-                        textView.setText("Картинка загружена!");
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        Toast.makeText(MainActivity.this, "Картинка  НЕ загрузилась", Toast.LENGTH_LONG).show();
-
-                    }
-                };
-
-
-                Picasso.get().load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS6wnfu9372TIPwu3cOcY5-FbxNpSmTMPSfsl2fVWSBRnWxMZ2XQ")
-                        .placeholder(R.drawable.ic_assignment_return_black_24dp)
-                        .error(R.drawable.ic_assignment_return_black_24dp)
-                        .rotate(33)
-                        .into(imageView, callBack);
-            }
-        });
+//        buttonPicasso.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Callback callBack = new Callback() {
+//                    @Override
+//                    public void onSuccess() {
+//                        Toast.makeText(MainActivity.this, "Картинка загрузилась", Toast.LENGTH_LONG).show();
+//                        textView.setText("Картинка загружена!");
+//                    }
+//
+//                    @Override
+//                    public void onError(Exception e) {
+//                        Toast.makeText(MainActivity.this, "Картинка  НЕ загрузилась", Toast.LENGTH_LONG).show();
+//
+//                    }
+//                };
+//
+//
+//                Picasso.get().load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS6wnfu9372TIPwu3cOcY5-FbxNpSmTMPSfsl2fVWSBRnWxMZ2XQ")
+//                        .placeholder(R.drawable.ic_assignment_return_black_24dp)
+//                        .error(R.drawable.ic_assignment_return_black_24dp)
+//                        .rotate(33)
+//                        .into(imageView, callBack);
+//            }
+//        });
 
 
     }
@@ -239,5 +288,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @OnClick(R.id.button4)
+    void onClickPicasso() {
+        Callback callBack = new Callback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(MainActivity.this, "Картинка загрузилась", Toast.LENGTH_LONG).show();
+                textView.setText("Картинка загружена!");
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(MainActivity.this, "Картинка  НЕ загрузилась", Toast.LENGTH_LONG).show();
+
+            }
+        };
+
+
+        Picasso.get().load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS6wnfu9372TIPwu3cOcY5-FbxNpSmTMPSfsl2fVWSBRnWxMZ2XQ")
+                .placeholder(R.drawable.ic_assignment_return_black_24dp)
+                .error(R.drawable.ic_assignment_return_black_24dp)
+                .rotate(33)
+                .into(imageView, callBack);
+    }
 
 }
